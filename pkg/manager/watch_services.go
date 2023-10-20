@@ -90,11 +90,11 @@ func (sm *Manager) servicesWatcher(ctx context.Context, serviceFunc func(context
 		// We need to inspect the event and get ResourceVersion out of it
 		switch event.Type {
 		case watch.Added, watch.Modified:
-			// log.Debugf("Endpoints for service [%s] have been Created or modified", s.service.ServiceName)
 			svc, ok := event.Object.(*v1.Service)
 			if !ok {
 				return fmt.Errorf("unable to parse Kubernetes services from API watcher")
 			}
+			log.Debugf("Endpoints for service [%s] have been Created or modified", svc.Name)
 
 			// We only care about LoadBalancer services
 			if svc.Spec.Type != v1.ServiceTypeLoadBalancer {
@@ -104,6 +104,7 @@ func (sm *Manager) servicesWatcher(ctx context.Context, serviceFunc func(context
 			// We only care about LoadBalancer services that have been allocated an address
 			serviceAddresses := fetchServiceAddresses(svc)
 			if len(serviceAddresses) == 0 || serviceAddresses[0] == "" {
+				log.Debugf("No service address for service [%s]", svc.String())
 				break
 			}
 

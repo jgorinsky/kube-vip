@@ -346,8 +346,15 @@ func fetchServiceAddresses(s *v1.Service) []string {
 			for _, ip := range ips {
 				trimmedIPs = append(trimmedIPs, strings.TrimSpace(ip))
 			}
+			log.Debugf("Annotation service address is [%v]", v)
 			return trimmedIPs
 		}
 	}
+
+	if len(s.Status.LoadBalancer.Ingress) > 0 {
+		log.Debugf("Service Status.LoadBalancer.Ingress is [%s]", s.Status.LoadBalancer.Ingress[0].IP)
+		return s.Status.LoadBalancer.Ingress[0].IP
+	}
+
 	return []string{s.Spec.LoadBalancerIP}
 }
