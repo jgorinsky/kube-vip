@@ -3,14 +3,13 @@ package bgp
 import (
 	"context"
 	"fmt"
-	"net/netip"
+	"net"
 	"strconv"
 	"strings"
 
 	"github.com/golang/protobuf/ptypes" //nolint
 	"github.com/golang/protobuf/ptypes/any"
 	api "github.com/osrg/gobgp/v3/api"
-	log "github.com/sirupsen/logrus"
 )
 
 // AddPeer will add peers to the BGP configuration
@@ -56,8 +55,8 @@ func (b *Server) AddPeer(peer Peer) (err error) {
 	})
 }
 
-func (b *Server) getPath(ip netip.Prefix) (path *api.Path) {
-	isV6 := ip.Addr().Is6()
+func (b *Server) getPath(ip net.IP) (path *api.Path) {
+	isV6 := ip.To4() == nil
 
 	//nolint
 	originAttr, _ := ptypes.MarshalAny(&api.OriginAttribute{
@@ -66,10 +65,9 @@ func (b *Server) getPath(ip netip.Prefix) (path *api.Path) {
 
 	if !isV6 {
 		//nolint
-		log.Debugf("JG Creating Path for [%s] [%d]", ip.Addr().String(), ip.Bits())
 		nlri, _ := ptypes.MarshalAny(&api.IPAddressPrefix{
-			Prefix:    ip.Addr().String(),
-			PrefixLen: uint32(ip.Bits()),
+			Prefix:    ip.String(),
+			PrefixLen: 32,
 		})
 
 		//nolint
