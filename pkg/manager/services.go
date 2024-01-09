@@ -353,7 +353,11 @@ func fetchServiceAddresses(s *v1.Service) []string {
 
 	if len(s.Status.LoadBalancer.Ingress) > 0 {
 		log.Debugf("Service Status.LoadBalancer.Ingress is [%s]", s.Status.LoadBalancer.Ingress[0].IP)
-		return s.Status.LoadBalancer.Ingress[0].IP
+		var ingressIPs []string
+		for _, ingress := range s.Status.LoadBalancer.Ingress {
+			ingressIPs = append(ingressIPs, strings.TrimSpace(ingress.IP))
+		}
+		return ingressIPs
 	}
 
 	return []string{s.Spec.LoadBalancerIP}
